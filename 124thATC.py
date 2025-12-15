@@ -1,0 +1,218 @@
+import os
+import glob
+import wave
+from random import randrange
+import time
+import pygame
+import numpy as np
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
+from scipy.io.wavfile import write
+from piper import PiperVoice
+
+
+# -------------------------------------------------------------------
+# Your call sigh
+# -------------------------------------------------------------------
+atc_callsign = "MST"
+atc_flightno = "612"
+
+# -------------------------------------------------------------------
+# Do you want to see ATC messages in the console also?
+# -------------------------------------------------------------------
+atc_show_responses = True
+
+# -------------------------------------------------------------------
+# Define where your X-Plane log file is located
+# This usually sits in the root of your X-Plane folder, named Log.txt
+# -------------------------------------------------------------------
+atc_xplane_log = "C:\\Users\\windo\\Simulator\\12\\Log.txt"
+#atc_xplane_log = "./Log_ATC.txt"
+
+# -------------------------------------------------------------------
+# Do you want to hear "your voice" when contacting ATC?
+# -------------------------------------------------------------------
+atc_captain_voice = True
+
+# -------------------------------------------------------------------
+# Select your pilot's voice
+# See the voices folder and pick one
+# -------------------------------------------------------------------
+atc_pilot_voice = "danny"
+atc_pilot_quality = "low"
+
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+# -----------------------------------------------------------
+
+colorama_init()
+
+print("  ")
+print(" ---------------------------------------------- ")
+print("    _  __      ____  __    ___    _   ________   ____  ________  __________ ")
+print("   | |/ /     / __ \\/ /   /   |  / | / / ____/  / __ \\/  _/ __ \\/ ____/ __ \\")
+print("   |   /_____/ /_/ / /   / /| | /  |/ / __/    / /_/ // // /_/ / __/ / /_/ /")
+print("  /   /_____/ ____/ /___/ ___ |/ /|  / /___   / ____// // ____/ /___/ _, _/") 
+print(" /_/|_|    /_/   /_____/_/  |_/_/ |_/_____/  /_/   /___/_/   /_____/_/ |_|")
+print("  ")
+print(" Making X-Plane ATC sound more natural")
+print(" ---------------------------------------------- ")
+print(" Developed by MarStrMind")
+print(" License: MIT")
+print(" ---------------------------------------------- ")
+print(" Using file: " + atc_xplane_log)
+print(" ---------------------------------------------- ")
+print(" Module: 124thATC")
+print(" ---------------------------------------------- ")
+
+atc_voices = glob.glob(".\\voices\\*")
+
+curline  = 0
+lastline = 0
+atc_voice = ""
+
+# We only need to load this once
+pilotvoice = PiperVoice.load("./voices/" + atc_pilot_voice + "/" + atc_pilot_quality + "/en_US-"+atc_pilot_voice+"-"+atc_pilot_quality+".onnx")
+
+# Init pygame and its mixer
+pygame.init()
+pygame.mixer.init()
+
+# The click at the end of a transmission
+click = pygame.mixer.Sound("./audio/endclick.wav")
+
+icao_codes = []
+icao_file = open("./icao.txt")
+icao_lines = icao_file.readlines()
+for icao in icao_lines:
+    icao = icao.replace("\n", "")
+    if icao != "":
+        icao_codes.append(icao)
+print (" Loaded " + str(len(icao_codes)) + " ICAO codes")
+print("")
+
+while True:
+    atc_log = open(atc_xplane_log)
+    lines = atc_log.readlines()
+    curline = 0
+    for line in lines:
+        if "124thATC" in line and "Communication: " in line and curline > lastline:
+            lastline = curline
+            thisline = line.replace("\n", "")
+            linedata = thisline.split(": ")
+            speaker = 0
+            
+            lineparts = linedata[2].split(" ")
+            lineparts[1] = lineparts[1].replace(",", "")
+            if lineparts[0] == atc_callsign and lineparts[1] == atc_flightno:
+                speaker = 1
+            else:
+                speaker = 0
+            
+            vcfound = False
+            while vcfound == False:
+                vc = randrange(0, len(atc_voices))
+                if atc_pilot_voice not in atc_voices[vc]:
+                    avc = atc_voices[vc].replace(".\\voices\\", "")
+                    atc_voice = avc
+                    vcfound = True
+            
+            speakline = linedata[2].encode('latin-1').decode('utf-8')
+
+            special_char_map = {ord('ä'):'ae', ord('ü'):'ue', ord('ö'):'oe', ord('ß'):'ss', ord('Ä'):'Ae', ord('Ö'):'Oe', ord('Ü'):'Ue'}
+            speakline = speakline.translate(special_char_map)
+
+            speakline = speakline.replace("0", "0 ")
+            speakline = speakline.replace("1", "1 ")
+            speakline = speakline.replace("2", "2 ")
+            speakline = speakline.replace("3", "3 ")
+            speakline = speakline.replace("4", "4 ")
+            speakline = speakline.replace("5", "5 ")
+            speakline = speakline.replace("6", "6 ")
+            speakline = speakline.replace("7", "7 ")
+            speakline = speakline.replace("8", "8 ")
+            speakline = speakline.replace("9", "9 ")
+
+            speakline = speakline.replace(".0", "decimal 0")
+            speakline = speakline.replace(".1", "decimal 1")
+            speakline = speakline.replace(".2", "decimal 2")
+            speakline = speakline.replace(".3", "decimal 3")
+            speakline = speakline.replace(".4", "decimal 4")
+            speakline = speakline.replace(".5", "decimal 5")
+            speakline = speakline.replace(".6", "decimal 6")
+            speakline = speakline.replace(".7", "decimal 7")
+            speakline = speakline.replace(".8", "decimal 8")
+            speakline = speakline.replace(".9", "decimal 9")
+        
+            speakline = speakline.replace("IFR", "I F R")
+            speakline = speakline.replace("VFR", "V F R")
+
+            for icao in icao_codes:
+                if icao in speakline:
+                    ltr = list(icao)
+                    newstr = ""
+                    for l in ltr:
+                        newstr = newstr + l + " "
+                    speakline = speakline.replace(icao, newstr)
+                    break
+
+            if atc_show_responses == True:
+                if speaker == 1:
+                    print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[2] + f'{Style.RESET_ALL}')
+                if speaker == 0:
+                    print(f' {Fore.YELLOW}[PILOT] {Fore.WHITE}' + linedata[2] + f'{Style.RESET_ALL}')
+                print(" ------------------------------------------------------- ")
+
+            if speaker == 0:
+                with wave.open("audio/pilot.wav", "wb") as wav_file:
+                    pilotvoice.synthesize_wav(speakline, wav_file)
+
+            if speaker == 1:
+                qlt = ["high", "medium", "low"]
+                atcvoice = None
+                qlty = -1
+                for q in range(0, 3):
+                    if os.path.isfile("./voices/"+atc_voice+"/"+qlt[q]+"/en_US-"+atc_voice+"-"+qlt[q]+".onnx") == True:
+                        atcvoice = PiperVoice.load("./voices/"+atc_voice+"/"+qlt[q]+"/en_US-"+atc_voice+"-"+qlt[q]+".onnx")
+                        qlty = q
+                        break
+                
+                with wave.open("audio/atc.wav", "wb") as wav_file:
+                    atcvoice.synthesize_wav(speakline, wav_file)
+
+            # Get length of spoken audio.
+            t = None
+            if speaker == 0:
+                t = pygame.mixer.Sound("audio/pilot.wav")
+            if speaker == 1:
+                t = pygame.mixer.Sound("audio/atc.wav")
+            l = int(t.get_length()) + 1
+            # OK. Generate white noise:
+            noise = np.random.normal(0, 1, 8000 * l)
+            # Normalize the white noise
+            noise = noise / np.max(np.abs(noise))
+            # Convert the white noise to a 16-bit format
+            noise = (noise * 2**15).astype(np.int16)
+            # Save that file too
+            write('audio/noise.wav', 8000, noise)
+
+            pygame.mixer.Channel(0).play(t)
+        
+            # Set white noise volume to 10%
+            pygame.mixer.Channel(1).set_volume(0.05)
+            # Place white noise in Channel 1
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('audio/noise.wav'))
+
+            while pygame.mixer.Channel(0).get_busy():
+                time.sleep(0.1)
+            
+            pygame.mixer.Channel(0).set_volume(0.4)
+            pygame.mixer.Channel(0).play(click)
+
+            while pygame.mixer.Channel(0).get_busy():
+                time.sleep(0.1)
+
+        curline = curline+1
+
+    time.sleep(1)
