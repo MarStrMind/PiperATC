@@ -5,6 +5,7 @@ from random import randrange
 import time
 import pygame
 import numpy as np
+from pydub import AudioSegment as am
 from colorama import init as colorama_init
 from colorama import Fore
 from colorama import Style
@@ -13,7 +14,7 @@ from piper import PiperVoice
 
 
 # -------------------------------------------------------------------
-# Your call sigh
+# Your call sign
 # -------------------------------------------------------------------
 atc_callsign = "MST"
 atc_flightno = "612"
@@ -39,8 +40,8 @@ atc_captain_voice = True
 # Select your pilot's voice
 # See the voices folder and pick one
 # -------------------------------------------------------------------
-atc_pilot_voice = "danny"
-atc_pilot_quality = "low"
+atc_pilot_voice = "hfc_male"
+atc_pilot_quality = "medium"
 
 # -----------------------------------------------------------
 # -----------------------------------------------------------
@@ -165,8 +166,12 @@ while True:
                 print(" ------------------------------------------------------- ")
 
             if speaker == 0:
-                with wave.open("audio/pilot.wav", "wb") as wav_file:
+                with wave.open("audio/t_pilot.wav", "wb") as wav_file:
                     pilotvoice.synthesize_wav(speakline, wav_file)
+
+                sound = am.from_file("audio/t_pilot.wav", format='wav')
+                sound = sound.set_frame_rate(8000)
+                sound.export("audio/pilot.wav", format='wav')
 
             if speaker == 1:
                 qlt = ["high", "medium", "low"]
@@ -178,8 +183,13 @@ while True:
                         qlty = q
                         break
                 
-                with wave.open("audio/atc.wav", "wb") as wav_file:
+                with wave.open("audio/t_atc.wav", "wb") as wav_file:
                     atcvoice.synthesize_wav(speakline, wav_file)
+
+                sound = am.from_file("audio/t_atc.wav", format='wav')
+                sound = sound.set_frame_rate(8000)
+                sound.export("audio/atc.wav", format='wav')
+            
 
             # Get length of spoken audio.
             t = None
