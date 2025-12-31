@@ -6,19 +6,22 @@ A small script to make ATC for X-Plane more natural sounding.
 
 - X-Plane 12 built-in
 - 124thATC
+- Pilot2ATC
 
 ## Requirements
 
+- Windows, Linux (or Unix-like), macOS
 - Python 3.13+
+- Ability to install modules globally or locally
+- Piper voices located in the ```voices``` inside the directory of these scripts.
 
-You will need the following packages in your Python install - either globally or in a virtual environment (venv):
+It is my strong recommendation to create a virtual environment in the folder of these scripts. Then, navigate into the directory where this script is located, and run:
 
-- pygame
-- numpy
-- pydub
-- colorama
-- scipy
-- piper
+```pip install -f ./requirements.txt```
+
+This will install all modules you need.
+
+## Piper voices
 
 Should you not have it, create the folder "voices" in this folder - meaning, where you have placed the scripts from this repo.
 
@@ -32,7 +35,7 @@ Navigate into each one separately and copy the folders into the "voices" folder 
 
 Now, you will need to make a few adjustments.
 
-Let's use a nicely working example - 124thATC.
+### 124thATC
 
 Open the file 124thATC.py from this repo.
 
@@ -42,7 +45,25 @@ Then, adjust the path to the standard log file of X-Plane 12. Currently, it is m
 
 And finally, you will need to pick a "captain's" or "first officer" voice - if you want to hear that. If not, the setting above your choice of voice will disable verbal readbacks and requests, and only plays ATC communications.
 
-If you want to hear your requests as well, choose a voice. Do speed things up for you, you can go to https://rhasspy.github.io/piper-samples/ and have a listen to the voices that are available. Then, put in what you want.
+If you want to hear your requests as well, choose a voice. To speed things up for you, you can go to https://rhasspy.github.io/piper-samples/ and have a listen to the voices that are available. Then, put in what you want.
+
+### Pilot2ATC
+
+You will first need to enable logging into a text file within the application itself. This text file can be anywhere you like - but you need to know where it is.
+
+You will also need to reduce the volume of speech within the application to 0%. Otherwise you will hear PiperATC and the sound from Pilot2ATC. You will probably not want that.
+
+Open pilot2atc.py in your favorite text editor. Adjust your callsign and flight number at the top. Must match what you entered in the config of Pilot2ATC.
+
+Finally, you will need to pick a "captain's" or "first officer" voice - if you want to hear that. If not, the setting above your choice of voice will disable verbal readbacks and requests, and only plays ATC communications.
+
+If you want to hear your requests as well, choose a voice. To speed things up for you, you can go to https://rhasspy.github.io/piper-samples/ and have a listen to the voices that are available. Then, put in what you want.
+
+
+### X-Plane ATC
+
+Theoretically works, but it is not real-time as I found out. You can try this script but I found it be immersion-breaking if the ATC transmission is not happening when it happens in the simulator. This is due to the log file not being populated on an ATC transmission... for whatever reason.
+
 
 ## Sound output
 
@@ -50,18 +71,15 @@ I do not yet have the option to choose a sound device for output... so it is bes
 
 ## Running
 
-Strong recommendation: start X-Plane first.
+- Strong recommendation: start X-Plane first, and then be in your cockpit.
+- Open a terminal window of your choice, navigate to this folder and do a
 
-Then, open a terminal window of your choice, navigate to this folder and do a
-
-python ./[script to run]
+```python ./[script to run]```
 
 So for example with 124thATC:
 
-python ./124thATC.py
+```python ./124thATC.py```
 
 Adjust if you have a virtual environment.
 
-## Notes
-
-While X-Plane 12 ATC works, it is not real time. For some reason, the log file from X-Plane does not seem to be updated in real time or in the very least, in small time increments - so I cannot guarantee for this to work well.
+You should now hear your ATC with Piper TTS voices.
