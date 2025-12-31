@@ -28,10 +28,10 @@ atc_flightno = "MST"
 atc_show_responses = True
 
 # -------------------------------------------------------------------
-# Define where your X-Plane log file is located
-# This usually sits in the root of your X-Plane folder, named Log.txt
+# Define where your Pilot2ATC log is located.
+# Remember to enable this in the software.
 # -------------------------------------------------------------------
-atc_xplane_log = "C:\\Users\\windo\\Simulator\\12\\Log.txt"
+atc_xplane_log = "C:\\Users\\windo\\Simulator\\12\\Pilot2ATC.txt"
 #atc_xplane_log = "./Log_ATC.txt"
 
 # -------------------------------------------------------------------
@@ -42,8 +42,10 @@ atc_xplane_data = "C:\\Users\\windo\\Simulator\\12\\Data.txt"
 
 # -------------------------------------------------------------------
 # Do you want to hear "your voice" when contacting ATC?
+# Strong recommendation to leave this at False for Pilot2ATC,
+# if you are talking yourself!
 # -------------------------------------------------------------------
-atc_captain_voice = True
+atc_captain_voice = False
 
 # -------------------------------------------------------------------
 # Select your pilot's voice
@@ -103,7 +105,7 @@ print(" License: MIT")
 print(" ---------------------------------------------- ")
 print(" Using file: " + atc_xplane_log)
 print(" ---------------------------------------------- ")
-print(" Module: 124thATC")
+print(" Module: Pilot2ATC")
 print(" ---------------------------------------------- ")
 
 atc_voices = glob.glob(".\\voices\\*")
@@ -152,20 +154,20 @@ while True:
     lines = atc_log.readlines()
     curline = 0
     for line in lines:
-        if "124thATC" in line and "Communication: " in line and curline > lastline:
+        if "      ATC: " in line and curline > lastline:
             lastline = curline
             thisline = line.replace("\n", "")
-            linedata = thisline.split(": ")
-            speaker = 0
+            linedata = thisline.split("      ATC: ")
+            speaker = 1
             
             nato1_phonetic = ""
             nato2_phonetic = ""
 
             speakline = ""
 
-            linedata[2] = linedata[2].encode('latin-1').decode('utf-8')
+            linedata[1] = linedata[1].encode('latin-1').decode('utf-8')
             
-            lineparts = linedata[2].split(" ")
+            lineparts = linedata[1].split(" ")
             lineparts[1] = lineparts[1].replace(",", "")
             if lineparts[0] == atc_callsign and lineparts[1] == atc_flightno:
                 speaker = 1
@@ -227,6 +229,7 @@ while True:
             for lp in lineparts:
                 speakline = speakline + lp + " "
 
+
             if atc_voice == "" or controller_changed == True:
                 vcfound = False
                 while vcfound == False:
@@ -277,10 +280,10 @@ while True:
             if atc_show_responses == True:
                 if speaker == 1:
                     #print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + speakline + f'{Style.RESET_ALL}')
-                    print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[2] + f'{Style.RESET_ALL}')
+                    print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[1] + f'{Style.RESET_ALL}')
                 if speaker == 0:
                     #print(f' {Fore.YELLOW}[PILOT] {Fore.WHITE}' + speakline + f'{Style.RESET_ALL}')
-                    print(f' {Fore.YELLOW}[PILOT] {Fore.WHITE}' + linedata[2] + f'{Style.RESET_ALL}')
+                    print(f' {Fore.YELLOW}[PILOT] {Fore.WHITE}' + linedata[1] + f'{Style.RESET_ALL}')
                 print(" ------------------------------------------------------- ")
 
             if speaker == 0:
