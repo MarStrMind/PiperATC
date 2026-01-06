@@ -4,7 +4,6 @@ A small script to make ATC for X-Plane more natural sounding.
 
 ## Supported ATCs
 
-- X-Plane 12 built-in
 - 124thATC
 - Pilot2ATC
 
@@ -27,7 +26,7 @@ Should you not have it, create the folder "voices" in this folder - meaning, whe
 
 Additionally, and naturally, you will need a set of Piper voices. As I like to keep this in english language (as it should be for ATC communications), you should acquire all en-US and en-GB voices from here: https://huggingface.co/rhasspy/piper-voices/tree/main . Download the entire archive as zip, extract it somewhere and navigate into the "en" folder.
 
-There you will find two sub-folders: en-GB and en-US.
+There you will find two sub-folders: *en-GB* and *en-US*.
 
 Navigate into each one separately and copy the folders into the "voices" folder which I just mentioned.
 
@@ -37,11 +36,11 @@ Now, you will need to make a few adjustments.
 
 ### 124thATC
 
-Open the file 124thATC.py from this repo.
+Open the file ```piperatc.py``` from this repo.
 
 First, adjust your callsign and flight number. Must match what you entered in the config of 124th ATC.
 
-Then, adjust the path to the standard log file of X-Plane 12. Currently, it is my installation path - so you will have to change that.
+Then, adjust the path to the standard log file of X-Plane 12. Currently, it is my installation path - so you will have to change that. The variable for that is called ```onetwofouratc_log```.
 
 And finally, you will need to pick a "captain's" or "first officer" voice - if you want to hear that. If not, the setting above your choice of voice will disable verbal readbacks and requests, and only plays ATC communications.
 
@@ -53,16 +52,9 @@ You will first need to enable logging into a text file within the application it
 
 You will also need to reduce the volume of speech within the application to 0%. Otherwise you will hear PiperATC and the sound from Pilot2ATC. You will probably not want that.
 
-Open pilot2atc.py in your favorite text editor. Adjust your callsign and flight number at the top. Must match what you entered in the config of Pilot2ATC.
+Open ```piperatc.py``` in your favorite text editor. Adjust your callsign and flight number at the top. Must match what you entered in the config of Pilot2ATC.
 
-Finally, you will need to pick a "captain's" or "first officer" voice - if you want to hear that. If not, the setting above your choice of voice will disable verbal readbacks and requests, and only plays ATC communications.
-
-If you want to hear your requests as well, choose a voice. To speed things up for you, you can go to https://rhasspy.github.io/piper-samples/ and have a listen to the voices that are available. Then, put in what you want.
-
-
-### X-Plane ATC
-
-Theoretically works, but it is not real-time as I found out. You can try this script but I found it be immersion-breaking if the ATC transmission is not happening when it happens in the simulator. This is due to the log file not being populated on an ATC transmission... for whatever reason.
+Then, adjust the path in the ```p2atc_log``` variable, to the path you set in the application.
 
 
 ## Sound output
@@ -71,15 +63,31 @@ I do not yet have the option to choose a sound device for output... so it is bes
 
 ## Running
 
-- Strong recommendation: start X-Plane first, and then be in your cockpit.
+- Strong recommendation: start X-Plane first, and then be in your cockpit. This is because PiperATC will connect to X-Plane via its built-in REST API.
 - Open a terminal window of your choice, navigate to this folder and do a
 
-```python ./[script to run]```
+```python ./[script to run] --[module to run]```
 
-So for example with 124thATC:
+124thATC:
 
-```python ./124thATC.py```
+```python ./piperatc.py --124thatc```
+
+Pilot2ATC:
+
+```python ./piperatc.py --pilot2atc```
+
+## Monitor mode
+
+Every module has a "monitor" option. This is useful if you do not want to hear the voices, but only want to see what ATC has said. For example, you could open a Terminal on another computer, run the script and only see ATC's transmissions.
+
+You simply add the ```--monitor``` switch to the command, like so:
+
+```python ./piperatc.py --124thatc --monitor```
+
+This will then only show the output of the ATC log. For this to work you also have to adjust the paths to the respective log files as described above.
 
 Adjust if you have a virtual environment.
 
 You should now hear your ATC with Piper TTS voices.
+
+Enjoy.
