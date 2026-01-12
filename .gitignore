@@ -1,0 +1,10 @@
+__pycache__/xpapi.cpython-313.pyc
+/voices
+/piper-voices
+audio/atc.wav
+audio/noise.wav
+audio/pilot.wav
+audio/t_atc.wav
+audio/t_pilot.wav
+audio/tmp_pilot.wav
+Data.txt
