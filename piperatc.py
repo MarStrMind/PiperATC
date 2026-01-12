@@ -472,7 +472,7 @@ if sys.argv[1] == "--pilot2atc":
             lines = atc_log.readlines()
             curline = 0
             for line in lines:
-                if "ATC: " in line and curline > lastline:
+                if ("ATC: " in line or "Pilot: " in line) and curline > lastline:
 
                     freq = xpapi.get_value_from_dref_id(com1id)
                     
@@ -484,7 +484,11 @@ if sys.argv[1] == "--pilot2atc":
 
                     lastline = curline
                     thisline = line.replace("\n", "")
-                    linedata = thisline.split("ATC: ")
+                    linedata = []
+                    if "ATC: " in line:
+                        linedata = thisline.split("ATC: ")
+                    if "Pilot: " in line:
+                        linedata = thisline.split("Pilot: ")
                     
                     nato1_phonetic = ""
                     nato2_phonetic = ""
@@ -542,32 +546,49 @@ if sys.argv[1] == "--pilot2atc":
 
                     if atc_show_responses == True:
                             #print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + speakline + f'{Style.RESET_ALL}')
-                        print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[1] + f'{Style.RESET_ALL}')
-                        print(" ------------------------------------------------------- ")
+                        if "ATC: " in line:
+                            print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[1] + f'{Style.RESET_ALL}')
+                            print(" ------------------------------------------------------- ")
+                        if "Pilot: " in line:
+                            print(f' {Fore.YELLOW}[PILOT] {Fore.WHITE}' + linedata[1] + f'{Style.RESET_ALL}')
+                            print(" ------------------------------------------------------- ")
 
-                    qlt = ["high", "medium", "low"]
-                    atcvoice = None
-                    qlty = -1
-                    for q in range(0, 3):
-                        if os.path.isfile("./voices/"+atc_voice+"/"+qlt[q]+"/en_US-"+atc_voice+"-"+qlt[q]+".onnx") == True:
-                            atcvoice = PiperVoice.load("./voices/"+atc_voice+"/"+qlt[q]+"/en_US-"+atc_voice+"-"+qlt[q]+".onnx")
-                            qlty = q
-                            break
-                    for q in range(0, 3):
-                        if os.path.isfile("./voices/"+atc_voice+"/"+qlt[q]+"/en_GB-"+atc_voice+"-"+qlt[q]+".onnx") == True:
-                            atcvoice = PiperVoice.load("./voices/"+atc_voice+"/"+qlt[q]+"/en_GB-"+atc_voice+"-"+qlt[q]+".onnx")
-                            qlty = q
-                            break
-                    
-                    with wave.open("audio/t_atc.wav", "wb") as wav_file:
-                        atcvoice.synthesize_wav(speakline, wav_file)
+                    if "ATC: " in line:
+                        qlt = ["high", "medium", "low"]
+                        atcvoice = None
+                        qlty = -1
+                        for q in range(0, 3):
+                            if os.path.isfile("./voices/"+atc_voice+"/"+qlt[q]+"/en_US-"+atc_voice+"-"+qlt[q]+".onnx") == True:
+                                atcvoice = PiperVoice.load("./voices/"+atc_voice+"/"+qlt[q]+"/en_US-"+atc_voice+"-"+qlt[q]+".onnx")
+                                qlty = q
+                                break
+                        for q in range(0, 3):
+                            if os.path.isfile("./voices/"+atc_voice+"/"+qlt[q]+"/en_GB-"+atc_voice+"-"+qlt[q]+".onnx") == True:
+                                atcvoice = PiperVoice.load("./voices/"+atc_voice+"/"+qlt[q]+"/en_GB-"+atc_voice+"-"+qlt[q]+".onnx")
+                                qlty = q
+                                break
+                        
+                        with wave.open("audio/t_atc.wav", "wb") as wav_file:
+                            atcvoice.synthesize_wav(speakline, wav_file)
 
-                    sound = am.from_file("audio/t_atc.wav", format='wav')
-                    sound = sound.set_frame_rate(8000)
-                    sound.export("audio/atc.wav", format='wav')
+                        sound = am.from_file("audio/t_atc.wav", format='wav')
+                        sound = sound.set_frame_rate(8000)
+                        sound.export("audio/atc.wav", format='wav')
+
+                    if atc_captain_voice == True and "Pilot: " in line:
+                        with wave.open("audio/t_pilot.wav", "wb") as wav_file:
+                            pilotvoice.synthesize_wav(speakline, wav_file)
+
+                        sound = am.from_file("audio/t_pilot.wav", format='wav')
+                        sound = sound.set_frame_rate(8000)
+                        sound.export("audio/pilot.wav", format='wav')
                     
                     # Get length of spoken audio.
-                    t = pygame.mixer.Sound("audio/atc.wav")
+                    t = None
+                    if "ATC: " in line:
+                        t = pygame.mixer.Sound("audio/atc.wav")
+                    if atc_captain_voice == True and "Pilot: " in line:
+                        t = pygame.mixer.Sound("audio/pilot.wav")
                     l = int(t.get_length()) + 1
                     # OK. Generate white noise:
                     noise = np.random.normal(0, 1, 8000 * l)
