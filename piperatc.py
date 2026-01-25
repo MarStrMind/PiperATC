@@ -28,6 +28,9 @@ p2atc_log = "U:\\pilot2atc\\Pilot2ATC.txt"
 # -------------------------------------------------------------------
 onetwofouratc_log = "C:\\Users\\windo\\Simulator\\12\\Log.txt"
 
+# The plane you are flying
+onetwofouratc_plane = ["Cirrus", "Vision Jet"]
+
 # -------------------------------------------------------------------
 # Do you want to hear "your voice" when contacting ATC?
 # Strong recommendation to leave this at False for Pilot2ATC,
@@ -108,6 +111,22 @@ nato_alphabet = [
 ]
 
 # Some things for phonetics
+
+number_replace = [
+    ("0", "Zero "),
+    ("1", "One "),
+    ("2", "Two "),
+    ("3", "Three "),
+    ("4", "Four "),
+    ("5", "Fiver "),
+    ("6", "Six "),
+    ("7", "Seven "),
+    ("8", "Eight "),
+    ("9", "Niner "),
+    ("IFR", "I F R "),
+    ("VFR", "V F R ")
+]
+
 decimal_replace = [
     (".0", "decimal Zero "),
     (".1", "decimal One "),
@@ -118,17 +137,28 @@ decimal_replace = [
     (".6", "decimal Six "),
     (".7", "decimal Seven "),
     (".8", "decimal Eight "),
-    ("0", "Zero "),
-    ("1", "One "),
-    ("2", "Two "),
-    ("3", "Three "),
-    ("4", "Four "),
-    ("5", "Fiver "),
-    ("6", "Six "),
-    ("7", "Seven "),
-    ("8", "Eight "),
-    ("IFR", "I F R"),
-    ("VFR", "V F R")
+    (".9", "decimal Niner ")
+]
+
+
+# Some additions we can smuggle in to make some interactions even more realistic
+
+clearance_additionals = [
+    "Give me a moment for that clearance. ",
+    "Hold on a second, let me check something real quick. ",
+    "I'll be right with you for that clearance. ",
+    "One second, I'll be right with you. ",
+    "Stand by, let me pull your flight plan. ",
+    "Give me a moment, I’m coordinating. ",
+    "Hang on, I’ll get back to you. "
+]
+
+handoff_additionals = [
+    "Good day. ",
+    "Have a nice flight. ",
+    "Alright. ",
+    "See you. ",
+    "So long. "
 ]
 
 # Current line and last line read from the log file
@@ -214,7 +244,7 @@ if sys.argv[1] == "--124thatc":
     from piper import PiperVoice
 
     if len(sys.argv) < 3:    
-        controller_changed = False
+        controller_changed = True
 
         initial_call = True
 
@@ -228,12 +258,19 @@ if sys.argv[1] == "--124thatc":
         # The click at the end of a transmission
         click = pygame.mixer.Sound("./audio/endclick.wav")
 
+        # A variable to determine whether or not the controller is rather busy
+        # This may change at any time, at random
+        controller_busy = False
+
         while True:
             atc_log = open(onetwofouratc_log)
             lines = atc_log.readlines()
             curline = 0
             for line in lines:
                 if "124thATC" in line and "Communication: " in line and curline > lastline:
+
+                    # If he/she is busy, some additional sentences may be spoken for added realism
+                    controller_busy = random.choice([True, False])
                     
                     freq = xpapi.get_value_from_dref_id(com1id)
                     
@@ -278,6 +315,25 @@ if sys.argv[1] == "--124thatc":
                     else:
                         speaker = 0
                         if initial_call == False:
+
+                            plnrpl = randrange(1, 11)
+                            if plnrpl in {1, 3, 6, 9}:
+                                spkln = ""
+                                for lp in lineparts:
+                                    spkln = spkln + lp + " "
+                                
+                                rpl = ""
+                                rpl2 = randrange(1, 11)
+                                if rpl2 in {1, 4, 8, 10}:
+                                    rpl = onetwofouratc_plane[0] + " " + onetwofouratc_plane[1]
+                                spkln = spkln.replace("good morning", rpl)
+                                spkln = spkln.replace("good afternoon", rpl)
+                                spkln = spkln.replace("good evening", rpl)
+                                linedata[2] = linedata[2].replace("good morning", rpl)
+                                linedata[2] = linedata[2].replace("good afternoon", rpl)
+                                linedata[2] = linedata[2].replace("good evening", rpl)
+                                lineparts = spkln.split(" ")
+
                             nato1 = list(lineparts[len(lineparts)-2])
                             nato2 = list(lineparts[len(lineparts)-1])
                             for n in nato1:
@@ -295,6 +351,25 @@ if sys.argv[1] == "--124thatc":
                             lineparts[len(lineparts)-1] = lineparts[len(lineparts)-1].replace(atc_flightno, nato2_phonetic)
                         else:
                             initial_call = False
+
+                            plnrpl = randrange(1, 11)
+                            if plnrpl in {1, 3, 6, 9}:
+                                spkln = ""
+                                for lp in lineparts:
+                                    spkln = spkln + lp + " "
+                                
+                                rpl = ""
+                                rpl2 = randrange(1, 11)
+                                if rpl2 in {1, 4, 8, 10}:
+                                    rpl = onetwofouratc_plane[0] + " " + onetwofouratc_plane[1]
+                                spkln = spkln.replace("good morning", rpl)
+                                spkln = spkln.replace("good afternoon", rpl)
+                                spkln = spkln.replace("good evening", rpl)
+                                linedata[2] = linedata[2].replace("good morning", rpl)
+                                linedata[2] = linedata[2].replace("good afternoon", rpl)
+                                linedata[2] = linedata[2].replace("good evening", rpl)
+                                lineparts = spkln.split(" ")
+
                             for lp in range(0, len(lineparts)):
                                 if atc_callsign in lineparts[lp]:
                                     nato1 = list(lineparts[lp])
@@ -331,6 +406,8 @@ if sys.argv[1] == "--124thatc":
                     speakline = speakline.translate(special_char_map)
                     for d in decimal_replace:
                         speakline = speakline.replace(d[0], d[1])
+                    for d in number_replace:
+                        speakline = speakline.replace(d[0], d[1])
 
                     for icao in icao_codes:
                         if icao in speakline:
@@ -341,10 +418,10 @@ if sys.argv[1] == "--124thatc":
                             speakline = speakline.replace(icao, newstr)
                             break
 
+                    # Let's define that here
+                    busyline = clearance_additionals[randrange(0, len(clearance_additionals))]
+
                     if atc_show_responses == True:
-                        if speaker == 1:
-                            print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[2] + f'{Style.RESET_ALL}')
-                            print(" ------------------------------------------------------- ")
                         if speaker == 0:
                             print(f' {Fore.YELLOW}[PILOT] {Fore.WHITE}' + linedata[2] + f'{Style.RESET_ALL}')
                             print(" ------------------------------------------------------- ")
@@ -373,14 +450,76 @@ if sys.argv[1] == "--124thatc":
                                 qlty = q
                                 break
                         
+                        # Controller may add your plane type to announcements
+                        add_plane = randrange(0, 11)
+                        if add_plane == 3 or add_plane == 5 or add_plane == 7:
+                            speakline = onetwofouratc_plane[1] + " " + speakline
+                            linedata[2] = onetwofouratc_plane[1] + " " + linedata[2]
+
+                        # We can add some "goodbye" realism to the end
+                        add_goodbye = randrange(0, 11)
+                        if " contact " in linedata[2] and " on " in linedata[2]:
+                            if add_goodbye == 3 or add_goodbye == 5 or add_goodbye == 7:
+                                gb = handoff_additionals[randrange(0, len(handoff_additionals))]
+                                speakline = speakline + " " + gb
+                                linedata[2] = linedata[2] + " " + gb
+
                         with wave.open("audio/t_atc.wav", "wb") as wav_file:
                             atcvoice.synthesize_wav(speakline, wav_file)
+
+                        # Sneak in some realism...
+
+                        # At initial request or when controller was changed,
+                        # we can make the controller appear busy
+                        if initial_call == True or controller_changed == True:
+                            if controller_busy == True:
+                                if atc_show_responses == True:
+                                    print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + busyline + f'{Style.RESET_ALL}')
+                                    print(" ------------------------------------------------------- ")
+                                with wave.open("audio/t_atc_busy.wav", "wb") as wav_busy_file:
+                                    atcvoice.synthesize_wav(busyline, wav_busy_file)
+                                busysound = am.from_file("audio/t_atc_busy.wav", format='wav')
+                                busysound = busysound.set_frame_rate(8000)
+                                busysound.export("audio/atcbusy.wav", format='wav')
+
+                                bs = pygame.mixer.Sound("audio/atcbusy.wav")
+                                b = int(bs.get_length()) + 1
+                                noisebusy = np.random.normal(0, 1, 8000 * b)
+                                # Normalize the white noise
+                                noisebusy = noisebusy / np.max(np.abs(noisebusy))
+                                # Convert the white noise to a 16-bit format
+                                noisebusy = (noisebusy * 2**15).astype(np.int16)
+                                # Save that file too
+                                write('audio/noisebusy.wav', 8000, noisebusy)
+
+                                pygame.mixer.Channel(0).play(bs)
+                                # Set white noise volume to 10%
+                                pygame.mixer.Channel(1).set_volume(0.05)
+                                # Place white noise in Channel 1
+                                pygame.mixer.Channel(1).play(pygame.mixer.Sound('audio/noisebusy.wav'))
+
+                                while pygame.mixer.Channel(0).get_busy():
+                                    time.sleep(0.1)
+                                
+                                pygame.mixer.Channel(0).set_volume(0.4)
+                                pygame.mixer.Channel(0).play(click)
+
+                                while pygame.mixer.Channel(0).get_busy():
+                                    time.sleep(0.1)
+
+                                time.sleep(random.uniform(1.9, 3.2))
 
                         sound = am.from_file("audio/t_atc.wav", format='wav')
                         sound = sound.set_frame_rate(8000)
                         sound.export("audio/atc.wav", format='wav')
                     
 
+                    # Console output
+                    if atc_show_responses == True:
+                        if speaker == 1:
+                            print(f' {Fore.GREEN}[ ATC ] {Fore.CYAN}' + linedata[2] + f'{Style.RESET_ALL}')
+                            print(" ------------------------------------------------------- ")
+                    
                     # Get length of spoken audio.
                     t = None
                     if speaker == 0 and atc_captain_voice == True:
@@ -533,6 +672,8 @@ if sys.argv[1] == "--pilot2atc":
                     speakline = speakline.translate(special_char_map)
 
                     for d in decimal_replace:
+                        speakline = speakline.replace(d[0], d[1])
+                    for d in number_replace:
                         speakline = speakline.replace(d[0], d[1])
 
                     for icao in icao_codes:
