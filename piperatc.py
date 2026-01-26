@@ -144,9 +144,9 @@ decimal_replace = [
 # Some additions we can smuggle in to make some interactions even more realistic
 
 clearance_additionals = [
-    "Give me a moment for that clearance. ",
+    "Give me a moment. ",
     "Hold on a second, let me check something real quick. ",
-    "I'll be right with you for that clearance. ",
+    "I'll be right with you. ",
     "One second, I'll be right with you. ",
     "Stand by, let me pull your flight plan. ",
     "Give me a moment, I’m coordinating. ",
