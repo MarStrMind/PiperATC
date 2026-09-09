@@ -21,7 +21,7 @@ atc_show_responses = True
 # Define where your Pilot2ATC log is located.
 # Remember to enable this in the software.
 # -------------------------------------------------------------------
-p2atc_log = "U:\\pilot2atc\\Pilot2ATC.txt"
+p2atc_log = "C:\\MarStr\\Simulator\\12\\Output\\Pilot2ATC_Log.txt"
 
 # -------------------------------------------------------------------
 # 124thATC is within X-Plane's log - adjust folder as needed
@@ -36,7 +36,7 @@ onetwofouratc_plane = ["Cirrus", "Vision Jet"]
 # Strong recommendation to leave this at False for Pilot2ATC,
 # if you are talking yourself!
 # -------------------------------------------------------------------
-atc_captain_voice = True
+atc_captain_voice = False
 
 # -------------------------------------------------------------------
 # Select your pilot's voice
@@ -708,7 +708,7 @@ if sys.argv[1] == "--pilot2atc":
                                 atcvoice = PiperVoice.load("./voices/"+atc_voice+"/"+qlt[q]+"/en_GB-"+atc_voice+"-"+qlt[q]+".onnx")
                                 qlty = q
                                 break
-                        
+
                         with wave.open("audio/t_atc.wav", "wb") as wav_file:
                             atcvoice.synthesize_wav(speakline, wav_file)
 
@@ -730,31 +730,33 @@ if sys.argv[1] == "--pilot2atc":
                         t = pygame.mixer.Sound("audio/atc.wav")
                     if atc_captain_voice == True and "Pilot: " in line:
                         t = pygame.mixer.Sound("audio/pilot.wav")
-                    l = int(t.get_length()) + 1
-                    # OK. Generate white noise:
-                    noise = np.random.normal(0, 1, 8000 * l)
-                    # Normalize the white noise
-                    noise = noise / np.max(np.abs(noise))
-                    # Convert the white noise to a 16-bit format
-                    noise = (noise * 2**15).astype(np.int16)
-                    # Save that file too
-                    write('audio/noise.wav', 8000, noise)
 
-                    pygame.mixer.Channel(0).play(t)
-                
-                    # Set white noise volume to 10%
-                    pygame.mixer.Channel(1).set_volume(0.05)
-                    # Place white noise in Channel 1
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('audio/noise.wav'))
+                    if t is not None:
+                        l = int(t.get_length()) + 1
+                        # OK. Generate white noise:
+                        noise = np.random.normal(0, 1, 8000 * l)
+                        # Normalize the white noise
+                        noise = noise / np.max(np.abs(noise))
+                        # Convert the white noise to a 16-bit format
+                        noise = (noise * 2**15).astype(np.int16)
+                        # Save that file too
+                        write('audio/noise.wav', 8000, noise)
 
-                    while pygame.mixer.Channel(0).get_busy():
-                        time.sleep(0.1)
+                        pygame.mixer.Channel(0).play(t)
                     
-                    pygame.mixer.Channel(0).set_volume(0.4)
-                    pygame.mixer.Channel(0).play(click)
+                        # Set white noise volume to 10%
+                        pygame.mixer.Channel(1).set_volume(0.05)
+                        # Place white noise in Channel 1
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('audio/noise.wav'))
 
-                    while pygame.mixer.Channel(0).get_busy():
-                        time.sleep(0.1)
+                        while pygame.mixer.Channel(0).get_busy():
+                            time.sleep(0.1)
+                        
+                        pygame.mixer.Channel(0).set_volume(0.4)
+                        pygame.mixer.Channel(0).play(click)
+
+                        while pygame.mixer.Channel(0).get_busy():
+                            time.sleep(0.1)
 
                 curline = curline+1
 
